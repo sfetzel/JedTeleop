@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from lacny_teleop.hands_detection.hands import Handedness
-from lacny_teleop.hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
+from jed_teleop.hands_detection.hands import Handedness
+from jed_teleop.hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
 
 test_image = "test_images/hand-posy.png"
 

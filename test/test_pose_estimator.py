@@ -1,6 +1,6 @@
 import numpy as np
 
-from lacny_teleop.pose_estimator import PoseEstimator
+from jed_teleop.pose_estimator import PoseEstimator
 
 class TestPoseEstimator(PoseEstimator):
     def run(self):

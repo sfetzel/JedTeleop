@@ -4,9 +4,9 @@ import pytest
 
 import os
 
-from lacny_teleop.hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
-from lacny_teleop.orientation import calculate_normal, convert_hand_landmarks
-from lacny_teleop.utils.utils import cart2sph, to_text
+from jed_teleop.hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
+from jed_teleop.orientation import calculate_normal, convert_hand_landmarks
+from jed_teleop.utils.utils import cart2sph, to_text
 
 detector = MediaPipeHandPose(min_hand_detected_confidence=0.3, min_hand_presence_confidence=0.3,
                              running_mode=VisionRunningMode.IMAGE)

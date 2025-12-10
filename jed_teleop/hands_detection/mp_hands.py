@@ -12,7 +12,7 @@ import os
 
 from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
 
-from lacny_teleop.hands_detection.hands import HandPoseDetector, Handedness
+from jed_teleop.hands_detection.hands import HandPoseDetector, Handedness
 
 VisionRunningMode = mp.tasks.vision.RunningMode
 model_path_full = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_landmarker.task")

@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 import pytest
 
-from lacny_teleop import GripperState
-from lacny_teleop.grip_detector import detect_gripper_state
-from lacny_teleop.hands_detection.mp_hands import VisionRunningMode, MediaPipeHandPose
+from jed_teleop import GripperState
+from jed_teleop.grip_detector import detect_gripper_state
+from jed_teleop.hands_detection.mp_hands import VisionRunningMode, MediaPipeHandPose
 
 open_folder = "test/open"
 closed_folder = "test/close"
