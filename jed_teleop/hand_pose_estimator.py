@@ -4,6 +4,8 @@ import time
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
+from jed_teleop.sources.OpenCvDepthEstSource import OpenCvDepthEstSource
+from jed_teleop.sources.RealSenseSource import RealSenseSource
 from .grip_detector import detect_gripper_state
 from .depth_estimator import DepthAnythingEstimator
 from .hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
@@ -18,21 +20,18 @@ class HandPoseEstimator(PoseEstimator):
 
     def __init__(self, capture_name, stretch_factors: list = None) -> None:
         super(HandPoseEstimator, self).__init__()
-        self.cap = BufferlessCapture(capture_name) if capture_name is int else DirectCapture(capture_name)
         self.detector = MediaPipeHandPose(running_mode=VisionRunningMode.VIDEO)
         self.last_normal = None
-        self.decay = 0.25
         self.normal_rot = None
         self.is_gripper_closed = False
-        self.depth_estimator = DepthAnythingEstimator(True, self.decay)
+        self.decay = 0.25
         self.finger_distance_threshold = 0.07
-
-        self.zero_pos = np.array([0, 0.5, 0.5])
+        self.source = RealSenseSource() #OpenCvDepthEstSource(capture_name)
+        self.zero_pos = np.array([0, 0.0, 0.5])
         self.stretch_factors = np.array(stretch_factors if stretch_factors is not None else [1.0, 2.0, 1.0])
 
-    def process_result(self, detection_result, rgb_image: np.ndarray):
+    def process_result(self, detection_result, rgb_image: np.ndarray, depth: np.ndarray):
         hand_landmarks, handedness = detection_result
-        depth = self.depth_estimator.get_depth(rgb_image)
 
         points = convert_hand_landmarks(hand_landmarks)
         normal = calculate_normal(points)
@@ -50,10 +49,15 @@ class HandPoseEstimator(PoseEstimator):
         pts = np.array([[l.x, l.y, l.z] for l in hand_landmarks])
         self.is_gripper_closed = detect_gripper_state(pts) == GripperState.Closed
 
-        center_of_palm = (pts[0, :] + pts[5, :] + pts[9, :] + pts[13, :] + pts[17, :]) / 5.0
-        depth_y = to_image_indices(center_of_palm[1], depth_height)
-        depth_x = to_image_indices(center_of_palm[0], depth_width)
-        center_depth = depth[depth_y, depth_x]
+        points = [pts[0, :], pts[5, :], pts[9, :], pts[13, :], pts[17, :]]
+        depth_sum = 0.0
+        center_of_palm = sum(points) / len(points)
+        for point in points:
+            depth_y = to_image_indices(point[1], depth_height)
+            depth_x = to_image_indices(point[0], depth_width)
+            depth_sum += depth[depth_y, depth_x]
+
+        center_depth = depth_sum / len(points)
         new_location = np.array([
             center_of_palm[0],
             center_depth,
@@ -70,18 +74,20 @@ class HandPoseEstimator(PoseEstimator):
     def run(self):
         last_timestamp = None
         while not self.stop_requested:
-            img = self.cap.get_frame()
+            last_frame = self.source.last_frame
 
-            if img is None:
+            if last_frame is None:
                 time.sleep(0.1)
                 continue
+
+            img, depth = last_frame.rgb_image, last_frame.depth
 
             img = cv2.flip(img, 1)
             hand_landmarker_result = self.detector.detect(img)
             display_img = img
             
             if hand_landmarker_result is not None:
-                self.process_result(hand_landmarker_result, img)
+                self.process_result(hand_landmarker_result, img, depth)
                 hand_landmarks, handedness = hand_landmarker_result
                 display_img = MediaPipeHandPose.annotate_image(display_img, hand_landmarks, handedness)
 

@@ -1,4 +1,4 @@
-# LacnýTeleop
+# JedTeleop
 Simple teleoperation via webcam using hand pose recognition from MediaPipe and monocular depth estimation from DepthAnythingV2
 
 ![](teleop_demo_short.gif)
@@ -8,8 +8,8 @@ Simple teleoperation via webcam using hand pose recognition from MediaPipe and m
 - `pip install -e .`
 
 ## Try it out
-- `python -m lacny_teleop.demo.pose_estimator_accuracy` for an open3d visualization (from screenshot).
-- `python -m lacny_teleop.demo.pose_estimator_vis` for a matplotlib visualization.
+- `python -m jed_teleop.demo.pose_estimator_accuracy` for an open3d visualization (from screenshot).
+- `python -m jed_teleop.demo.pose_estimator_vis` for a matplotlib visualization.
 
 ## Controls
 For opencv image window:
