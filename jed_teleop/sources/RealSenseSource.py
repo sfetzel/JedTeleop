@@ -44,7 +44,7 @@ class RealSenseSource(VideoSource):
 
         # We will be removing the background of objects more than
         #  clipping_distance_in_meters meters away
-        clipping_distance_in_meters = 2.0  # 1 meter
+        clipping_distance_in_meters = 3.0  # 1 meter
         self.clipping_distance = clipping_distance_in_meters / self.depth_scale
 
         # Create an align object

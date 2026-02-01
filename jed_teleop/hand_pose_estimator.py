@@ -18,15 +18,16 @@ class HandPoseEstimator(PoseEstimator):
     def __init__(self, source: VideoSource, stretch_factors: list = None) -> None:
         super(HandPoseEstimator, self).__init__()
         self.detector = MediaPipeHandPose(running_mode=VisionRunningMode.VIDEO)
-        self.last_normal = None
         self.normal_rot = None
         self.is_gripper_closed = False
         self.decay = 0.35
         self.finger_distance_threshold = 0.07
         self.source = source
         self.zero_pos = np.array([0.5, 0.5, 0.5])
-        self.stretch_factors = np.array(stretch_factors if stretch_factors is not None else [1.0, 2.0, 1.0])
+        self.stretch_factors = np.array(stretch_factors if stretch_factors is not None else [1.0, 1.0, 1.0])
         self.last_position = None
+        self.last_normal = None
+        self.horizontal_flip = True
 
     def process_result(self, detection_result, rgb_image: np.ndarray, depth: np.ndarray):
         hand_landmarks, handedness = detection_result
@@ -34,10 +35,8 @@ class HandPoseEstimator(PoseEstimator):
         # points in camera space (origin is at left bottom).
         points_camera = convert_hand_landmarks(hand_landmarks)
         normal = calculate_normal(points_camera)
-        if not self.last_normal is None:
-            normal = (1 - self.decay) * self.last_normal + self.decay * normal
-
         self.last_normal = normal
+
         if not self.normal_rot is None:
             normal = self.normal_rot @ normal
 
@@ -50,7 +49,12 @@ class HandPoseEstimator(PoseEstimator):
         # naive lifting without perspective projection correction, because that would be too noisy.
         points_3d = combine_points_width_depth(points_image[:, :2], depth)
         points_palm = np.array([points_3d[0, :], points_3d[5, :], points_3d[9, :], points_3d[13, :], points_3d[17, :]])
-        center_of_palm = np.mean(points_palm, axis=0) # average across all points.
+        points_palm = points_palm[points_palm[:, 2] != 0.0]
+        if len(points_palm) > 0:
+            center_of_palm = np.mean(points_palm, axis=0) # average across all points.
+        else:
+            # use last position if depth is unavailable.
+            center_of_palm = self.last_position[:3]
 
         new_location = np.array([
             center_of_palm[0],
@@ -59,20 +63,24 @@ class HandPoseEstimator(PoseEstimator):
         ])
         new_location -= self.zero_pos
         new_location = new_location * self.stretch_factors
-        if self.last_position is not None:
-            new_location = self.decay * new_location + (1 - self.decay) * self.last_position
+
         gripper_value = GripperState.Closed.value if self.is_gripper_closed else GripperState.Open.value
         new_rotation = angles
 
         new_position = np.concatenate([new_location, new_rotation, np.array([gripper_value])])
+        if self.last_position is not None:
+            new_position = self.decay * new_position + (1 - self.decay) * self.last_position
         self.set_position_and_update_deltas(new_position)
+        self.last_position = new_position
 
     def process_frame(self, frame: Frame):
         img, depth = frame.rgb_image, frame.depth
 
-        img = cv2.flip(img, 1)
+        if self.horizontal_flip:
+            img = cv2.flip(img, 1)
+            depth = cv2.flip(depth, 1)
         hand_landmarker_result = self.detector.detect(img)
-        display_img = img
+        display_img = np.dstack((depth, depth, depth))
 
         if hand_landmarker_result is not None:
             self.process_result(hand_landmarker_result, img, depth)

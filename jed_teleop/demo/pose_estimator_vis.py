@@ -59,7 +59,7 @@ def update_points(frame):
         point += result[:3]
         r = R.from_euler('xyz', rotation, degrees=False)
         directions = r.apply(cs) + point
-
+        #print(f"\r{point}")
         line_x.set_data_3d(directions[0:2, 0], directions[0:2, 1], directions[0:2, 2])
         line_y.set_data_3d(directions[2:4, 0], directions[2:4, 1], directions[2:4, 2])
         line_z.set_data_3d(directions[4:, 0], directions[4:, 1], directions[4:, 2])
