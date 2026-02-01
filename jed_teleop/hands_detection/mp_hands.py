@@ -6,8 +6,6 @@ import mediapipe as mp
 import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from mediapipe import solutions
-from mediapipe.framework.formats import landmark_pb2
 import os
 
 from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
@@ -22,6 +20,42 @@ FONT_SIZE = 1
 FONT_THICKNESS = 1
 HANDEDNESS_TEXT_COLOR = (88, 205, 54) # vibrant green
 CAPTION_TEXT_COLOR = (0, 0, 0) # vibrant green
+
+
+mp_hands = mp.tasks.vision.HandLandmarksConnections
+mp_drawing = mp.tasks.vision.drawing_utils
+mp_drawing_styles = mp.tasks.vision.drawing_styles
+
+MARGIN = 10  # pixels
+FONT_SIZE = 1
+FONT_THICKNESS = 1
+HANDEDNESS_TEXT_COLOR = (88, 205, 54) # vibrant green
+
+
+def draw_landmarks_on_image(rgb_image, hand_landmarks, handedness):
+    annotated_image = np.copy(rgb_image)
+
+    # Draw the hand landmarks.
+    mp_drawing.draw_landmarks(
+      annotated_image,
+      hand_landmarks,
+      mp_hands.HAND_CONNECTIONS,
+      mp_drawing_styles.get_default_hand_landmarks_style(),
+      mp_drawing_styles.get_default_hand_connections_style())
+
+    # Get the top left corner of the detected hand's bounding box.
+    height, width, _ = annotated_image.shape
+    x_coordinates = [landmark.x for landmark in hand_landmarks]
+    y_coordinates = [landmark.y for landmark in hand_landmarks]
+    text_x = int(min(x_coordinates) * width)
+    text_y = int(min(y_coordinates) * height) - MARGIN
+
+    # Draw handedness (left or right hand) on the image.
+    cv2.putText(annotated_image, f"{handedness.value}",
+                (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
+
+    return annotated_image
 
 class MediaPipeHandPose(HandPoseDetector):
     """
@@ -61,16 +95,7 @@ class MediaPipeHandPose(HandPoseDetector):
     def annotate_image(cls, image: np.ndarray, hand_landmarks: list[NormalizedLandmark], handedness: Handedness) -> np.ndarray:
         annotated_image = image.copy()
         # Draw the hand landmarks.
-        hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-        hand_landmarks_proto.landmark.extend([
-            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
-        ])
-        solutions.drawing_utils.draw_landmarks(
-            annotated_image,
-            hand_landmarks_proto,
-            solutions.hands.HAND_CONNECTIONS,
-            solutions.drawing_styles.get_default_hand_landmarks_style(),
-            solutions.drawing_styles.get_default_hand_connections_style())
+        draw_landmarks_on_image(annotated_image, hand_landmarks, handedness)
 
         # Get the top left corner of the detected hand's bounding box.
         height, width, _ = annotated_image.shape

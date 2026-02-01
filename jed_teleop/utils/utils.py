@@ -24,3 +24,19 @@ def to_image_indices(relative_coordinate, length: int) -> int:
 
 def to_text(vector):
     return f"({vector[0]}, {vector[1]}, {vector[2]})"
+
+def combine_points_width_depth(points_2d: np.ndarray, depth: np.ndarray) -> np.ndarray:
+    """
+    Extends the 2d point array width the depth from the provided depth image.
+    :param points_2d: 2d point array in the format (x,y) in relative coordinates in the image frame.
+    :param depth: depth image with shape (height, width).
+    :return: extended 2d point array
+    """
+    depth_height, depth_width = depth.shape
+    depth_values = []
+    for point in points_2d:
+        depth_y = to_image_indices(point[1], depth_height)
+        depth_x = to_image_indices(point[0], depth_width)
+        depth_values.append(depth[depth_y, depth_x])
+    depth_array = np.array([depth_values])
+    return np.hstack([points_2d, depth_array.T])

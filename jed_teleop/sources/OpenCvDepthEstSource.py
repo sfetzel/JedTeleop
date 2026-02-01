@@ -13,7 +13,7 @@ class OpenCvDepthEstSource(VideoSource):
         self.reader_thread.start()
 
     def _reader(self):
-        while True:
+        while not self.stop_requested:
             image = self.cap.get_frame()
             depth = self.depth_estimator.get_depth(image)
             self.last_frame = Frame(image, depth)

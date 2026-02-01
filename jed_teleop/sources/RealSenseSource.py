@@ -21,7 +21,6 @@ class RealSenseSource(VideoSource):
         pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
         pipeline_profile = config.resolve(pipeline_wrapper)
         device = pipeline_profile.get_device()
-        device_product_line = str(device.get_info(rs.camera_info.product_line))
 
         found_rgb = False
         for s in device.sensors:
@@ -56,7 +55,7 @@ class RealSenseSource(VideoSource):
         self.reader_thread.start()
 
     def _reader(self):
-        while True:
+        while not self.stop_requested:
             frames = self.pipeline.wait_for_frames()
             # frames.get_depth_frame() is a 640x360 depth image
 
@@ -75,7 +74,7 @@ class RealSenseSource(VideoSource):
             color_image = np.asanyarray(color_frame.get_data())
 
             # Remove background - Set pixels further than clipping_distance to grey
-            grey_color = 153
+            grey_color = 0
             depth_image_3d = np.dstack(
                 (depth_image, depth_image, depth_image))  # depth image is 1 channel, color is 3 channels
             bg_removed = np.where((depth_image_3d > self.clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)

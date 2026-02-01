@@ -1,18 +1,30 @@
+from time import sleep
+
 import numpy as np
 import matplotlib.pyplot as plt
-
-from ..hand_pose_estimator import HandPoseEstimator
+import matplotlib
+matplotlib.use("TkAgg")
+from jed_teleop import CircleEstimator
+from jed_teleop.hand_pose_estimator import HandPoseEstimator
 
 from scipy.spatial.transform import Rotation as R
 import matplotlib.animation as animation
 
-estimator = HandPoseEstimator(2)
+from jed_teleop.sources.RealSenseSource import RealSenseSource
+from jed_teleop.sources.OpenCvDepthEstSource import OpenCvDepthEstSource
+
+
+#source = OpenCvDepthEstSource(6)
+source = RealSenseSource()
+estimator = HandPoseEstimator(source)
+#estimator = CircleEstimator()
 #estimator = MockEstimator()
 estimator.start()
 
+
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.set_aspect('equal') 
+ax.set_aspect('equal')
 
 # Draw centered axes
 val = [1,0,0]
@@ -45,22 +57,13 @@ def update_points(frame):
     if not result is None:
         rotation += result[3:6]
         point += result[:3]
-        
         r = R.from_euler('xyz', rotation, degrees=False)
         directions = r.apply(cs) + point
-
-        xs = directions[:, 0]
-        ys = directions[:, 1]
-        zs = directions[:, 2]
 
         line_x.set_data_3d(directions[0:2, 0], directions[0:2, 1], directions[0:2, 2])
         line_y.set_data_3d(directions[2:4, 0], directions[2:4, 1], directions[2:4, 2])
         line_z.set_data_3d(directions[4:, 0], directions[4:, 1], directions[4:, 2])
         plt.draw()
-    #timer = threading.Timer(2.0, update_points)
-    #timer.start()
-
-#update_points()
 
 # Hide everything else
 # Hide axes ticks

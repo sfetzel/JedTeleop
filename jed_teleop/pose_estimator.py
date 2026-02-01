@@ -19,14 +19,16 @@ class PoseEstimator(ABC):
         self.thread = None
         self.stop_requested = False
         self.is_paused = False
+        self.pos_lock = threading.Lock()
         
     @abstractmethod
     def run(self):
         pass
     
     def get_deltas(self):
-        result = self.latest_deltas
-        self.latest_deltas = None
+        with self.pos_lock:
+            result = self.latest_deltas
+            self.latest_deltas = None
         return result
         
     def start(self):
@@ -41,22 +43,26 @@ class PoseEstimator(ABC):
             self.thread.join()
 
     def set_position_and_update_deltas(self, new_position):
-        if not self.is_paused:
-            # if not paused and current position is not none, then calculate deltas.
-            if self.current_position is not None:
-                delta = new_position - self.current_position
+        with self.pos_lock:
+            if not self.is_paused:
+                # if not paused and current position is not none, then calculate deltas.
+                if self.current_position is not None:
+                    delta = new_position - self.current_position
 
-                if self.latest_deltas is None:
-                    self.latest_deltas = delta
-                else:
-                    self.latest_deltas += delta
+                    if self.latest_deltas is None:
+                        self.latest_deltas = delta
+                    else:
+                        self.latest_deltas += delta
 
-                # the gripper value is absolute.
-                self.latest_deltas[-1] = new_position[-1]
-        else:
-            # reset deltas if paused.
-            self.latest_deltas = None
-        self.current_position = new_position.copy()
+                    # the gripper value is absolute.
+                    self.latest_deltas[-1] = new_position[-1]
+            else:
+                # reset deltas if paused.
+                self.latest_deltas = None
+            self.current_position = new_position.copy()
+
+    def __del__(self):
+        self.stop()
 
 class MockEstimator(PoseEstimator):
     def run(self):

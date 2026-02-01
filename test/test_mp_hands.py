@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
+import os
 
 from jed_teleop.hands_detection.hands import Handedness
 from jed_teleop.hands_detection.mp_hands import MediaPipeHandPose, VisionRunningMode
 
-test_image = "test_images/hand-posy.png"
+test_image = os.path.join(os.path.dirname(__file__), "test_images/hand-posy.png")
 
 def test_detect():
     detector = MediaPipeHandPose(running_mode=VisionRunningMode.IMAGE)
