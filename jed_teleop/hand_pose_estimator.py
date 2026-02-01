@@ -69,7 +69,8 @@ class HandPoseEstimator(PoseEstimator):
 
         new_position = np.concatenate([new_location, new_rotation, np.array([gripper_value])])
         if self.last_position is not None:
-            new_position = self.decay * new_position + (1 - self.decay) * self.last_position
+            # exponential moving average for all numbers but gripper state (last entry).
+            new_position[:-1] = (self.decay * new_position + (1 - self.decay) * self.last_position)[:-1]
         self.set_position_and_update_deltas(new_position)
         self.last_position = new_position
 

@@ -41,13 +41,10 @@ def to_text(vector):
 
 def convert_hand_landmarks(hand_landmarks):
     # hand landmarks have coordinates in camera space, which is oriented along image (x,y) and depth z.
-    # y is measured from top left of image.
-    # 1-y is measured from bottom left of image.
-    # z is measured from camera to point: larger value: farther away, smaller value: nearer.
-    # for z we want: farther away: smaller value, near: large value.
-    # transformation: x -> x, y -> (1-y) -> z, z -> y.
-    hand_points = [[1-l.x, l.z, 1 - l.y] for l in hand_landmarks]
-    #hand_points = [[l.x, l.y, l.z] for l in hand_landmarks]
+    # The origin is at top left and z coordinate is relative to wrist.
+    # Flip y coordinate by 1-y to move origin to bottom left.
+    # change sign of other coordinates to have the same orientation as before.
+    hand_points = [[-l.x, -l.z, 1 - l.y] for l in hand_landmarks]
     return hand_points
 
 def calculate_normal(hand_points: list[list]) -> np.ndarray:
@@ -55,6 +52,5 @@ def calculate_normal(hand_points: list[list]) -> np.ndarray:
         hand_points[0], hand_points[5], hand_points[17],
     ])
     # direction normal is calculated from pinky to index finger, so the orientation is correct.
-    normal = calc_normal(points[0, :], points[-1, :], points[1, :])
-    normal[1] *= -1
+    normal = calc_normal(points[0, :], points[1, :], points[-1, :])
     return normal

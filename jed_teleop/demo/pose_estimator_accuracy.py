@@ -5,27 +5,11 @@ import time
 import numpy as np
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
+
+from jed_teleop.demo.utils import get_demo_estimator
 from jed_teleop.pose_estimator import MockEstimator, CircleEstimator, RotatorEstimator, GripperState
-from jed_teleop.hand_pose_estimator import HandPoseEstimator
-from jed_teleop.sources.RealSenseSource import RealSenseSource
-#from jed_teleop.sources.OpenCvDepthEstSource import OpenCvDepthEstSource
 
-parser = argparse.ArgumentParser(
-                    prog='JedTeleop',
-                    description='Shows a target box in blue and a red box corresponding to the recognized hand pose.'
-                                'Try to bring the red box to the blue box. Bring your fingers and thumb together to read the distance.'
-                                'If the distance is small enough the target box will move to a new location.')
-parser.add_argument('--opencv_device', default="0")
-parser.add_argument("--relative", action="store_true", help="Use relative movements instead of absolute values")
-parser.add_argument("--finger-distance-threshold", default=0.07, help="Consider gripper closed when fingers and thumb distance is smaller than this threshold.")
-
-args = parser.parse_args()
-#source = OpenCvDepthEstSource(int(args.opencv_device) if args.opencv_device.isnumeric() else args.opencv_device)
-source = RealSenseSource()
-estimator = HandPoseEstimator(source)
-estimator.finger_distance_threshold = args.finger_distance_threshold
-#estimator = RotatorEstimator(np.array([0.0,0.0,0.1]))
-#estimator = CircleEstimator()
+estimator, args = get_demo_estimator()
 estimator.start()
 
 relative_mode = args.relative

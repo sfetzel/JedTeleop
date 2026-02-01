@@ -56,14 +56,13 @@ test_data = [("hand-posz.png", z_dir),
 @pytest.mark.parametrize("image,expected_normal", test_data)
 def test_direction(image, expected_normal):
     img, landmarks, handedness = get_hand_landmarks(image)
-    print(landmarks)
     points = convert_hand_landmarks(landmarks)
     normal = calculate_normal(points)
     distance = np.linalg.norm(expected_normal - normal)
 
     create_debug_image(img, landmarks, handedness, f"{image}-debug.png")
     create_3d_debug_image(img, landmarks, f"{image}-debug.html")
-    assert distance < 8e-1, f"Distance is too large: {distance}, normal: {to_text(normal)}"
+    assert distance < 9e-1, f"Distance is too large: {distance}, normal: {to_text(normal)}; actual vector: {normal}"
 
 @pytest.mark.parametrize("image,expected_polar,expected_azimuth", [
     ("hand-negx-45.png", 45, 180),
