@@ -14,6 +14,7 @@ def get_demo_estimator():
     parser.add_argument('--opencv_device', default="0")
     parser.add_argument('--realsense', action="store_true", help="Use a realsense camera using pyrealsense2")
     parser.add_argument("--relative", action="store_true", help="Use relative movements instead of absolute values")
+    parser.add_argument("--stretch", type=float, default=1.5, help="Scale for location transformation.")
     parser.add_argument("--finger-distance-threshold", default=0.07,
                         help="Consider gripper closed when fingers and thumb distance is smaller than this threshold.")
 
@@ -23,6 +24,6 @@ def get_demo_estimator():
         source = RealSenseSource()
     else:
         source = OpenCvDepthEstSource(int(args.opencv_device) if args.opencv_device.isnumeric() else args.opencv_device)
-    estimator = HandPoseEstimator(source)
+    estimator = HandPoseEstimator(source, [args.stretch, args.stretch, args.stretch])
     estimator.finger_distance_threshold = args.finger_distance_threshold
     return estimator, args
