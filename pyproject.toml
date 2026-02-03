@@ -1,5 +1,5 @@
 [project]
-name = "lacny_teleop"
+name = "jed_teleop"
 version = "0.1"
 authors = [
   { name="Simon Fetzel", email="simon.fetzel@stuba.sk" },
@@ -15,5 +15,5 @@ license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
 [project.urls]
-Homepage = "https://github.com/sfetzel/LacnyTeleop"
-Issues = "https://github.com/sfetzel/LacnyTeleop/issues"
+Homepage = "https://github.com/sfetzel/JedTeleop"
+Issues = "https://github.com/sfetzel/JedTeleop/issues"

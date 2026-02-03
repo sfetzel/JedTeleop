@@ -49,7 +49,7 @@ def update_box(vis) -> bool:
             gripper_state = delta[-1]
             pose_box_position += delta[:3]
     else:
-        target = estimator.current_position
+        target = estimator.current_pose
         if target is not None:
             pose_box.translate(target[:3], relative=False)
             if prev_rotation is not None:

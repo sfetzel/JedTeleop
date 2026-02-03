@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
-from jed_teleop.hand_pose_estimator import HandPoseEstimator
+from jed_teleop.hand_pose_estimator import MediaPipeHandPoseEstimator
 
 from scipy.spatial.transform import Rotation as R
 import matplotlib.animation as animation
@@ -11,7 +11,7 @@ from jed_teleop.sources import RealSenseSource
 
 #source = OpenCvDepthEstSource(2)
 source = RealSenseSource()
-estimator = HandPoseEstimator(source)
+estimator = MediaPipeHandPoseEstimator(source)
 # estimator = MockEstimator()
 estimator.start()
 
@@ -47,7 +47,7 @@ cs = np.array([[-s, 0, 0], [s, 0, 0], [0, -s, 0], [0, s, 0], [0, 0, -s], [0, 0, 
 
 def update_points(frame):
     global point, rotation
-    position = estimator.current_position
+    position = estimator.current_pose
     if position is not None:
         rotation = position[3:6]
         line_x.set_data_3d(0, rotation[0])

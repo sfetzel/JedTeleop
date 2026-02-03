@@ -8,7 +8,7 @@ from jed_teleop.demo.utils import get_demo_estimator
 
 matplotlib.use("TkAgg")
 from jed_teleop import CircleEstimator
-from jed_teleop.hand_pose_estimator import HandPoseEstimator
+from jed_teleop.hand_pose_estimator import MediaPipeHandPoseEstimator
 
 from scipy.spatial.transform import Rotation as R
 import matplotlib.animation as animation

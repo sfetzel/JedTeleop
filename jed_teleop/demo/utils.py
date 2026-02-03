@@ -1,6 +1,6 @@
 import argparse
 
-from jed_teleop import HandPoseEstimator
+from jed_teleop import MediaPipeHandPoseEstimator
 from jed_teleop.sources import RealSenseSource
 from jed_teleop.sources.OpenCvDepthEstSource import OpenCvDepthEstSource
 
@@ -24,6 +24,6 @@ def get_demo_estimator():
         source = RealSenseSource()
     else:
         source = OpenCvDepthEstSource(int(args.opencv_device) if args.opencv_device.isnumeric() else args.opencv_device)
-    estimator = HandPoseEstimator(source, [args.stretch, args.stretch, args.stretch])
+    estimator = MediaPipeHandPoseEstimator(source, [args.stretch, args.stretch, args.stretch])
     estimator.finger_distance_threshold = args.finger_distance_threshold
     return estimator, args

@@ -25,6 +25,16 @@ def to_image_indices(relative_coordinate, length: int) -> int:
 def to_text(vector):
     return f"({vector[0]}, {vector[1]}, {vector[2]})"
 
+def ema_smooth(decay: float, new_vector: np.ndarray, old_vector: np.ndarray):
+    """
+    Applies exponential moving average filter to new vector
+    :param decay: the decay factor for the new vector.
+    :param new_vector: the new vector.
+    :param old_vector: the old/current vector.
+    :return: decay * new_vector + (1-decay) * old_vector
+    """
+    return decay * new_vector + (1-decay) * old_vector
+
 def combine_points_width_depth(points_2d: np.ndarray, depth: np.ndarray) -> np.ndarray:
     """
     Extends the 2d point array width the depth from the provided depth image.

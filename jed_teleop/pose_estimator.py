@@ -4,8 +4,12 @@ import threading
 import time
 from typing import Optional
 
+import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+
+from jed_teleop.utils import calculate_rotation_matrix, ema_smooth
+
 
 class GripperState(enum.Enum):
     Closed = -1.0
@@ -13,13 +17,18 @@ class GripperState(enum.Enum):
 
 
 class PoseEstimator(ABC):
-    def __init__(self):
+    def __init__(self, stretch_factors: Optional[np.ndarray] = None):
         self.latest_deltas = None
-        self.current_position: Optional[np.ndarray] = None
+        self.current_pose: Optional[np.ndarray] = None
+        self.last_normal = None
         self.thread = None
         self.stop_requested = False
         self.is_paused = False
+        self.decay = 0.35
+        self.zero_pos = np.zeros(3)
+        self.stretch_factors = np.array(stretch_factors if stretch_factors is not None else [1.0, 1.0, 1.0])
         self.pos_lock = threading.Lock()
+        self.normal_rot = None
         
     @abstractmethod
     def run(self):
@@ -42,12 +51,12 @@ class PoseEstimator(ABC):
             self.stop_requested = True
             self.thread.join()
 
-    def set_position_and_update_deltas(self, new_position):
+    def set_pose_and_update_deltas(self, new_position):
         with self.pos_lock:
             if not self.is_paused:
                 # if not paused and current position is not none, then calculate deltas.
-                if self.current_position is not None:
-                    delta = new_position - self.current_position
+                if self.current_pose is not None:
+                    delta = new_position - self.current_pose
 
                     if self.latest_deltas is None:
                         self.latest_deltas = delta
@@ -59,7 +68,41 @@ class PoseEstimator(ABC):
             else:
                 # reset deltas if paused.
                 self.latest_deltas = None
-            self.current_position = new_position.copy()
+            self.current_pose = new_position.copy()
+
+    def set_smoothed_pose_and_update_deltas(self, new_pose):
+        if self.current_pose is not None:
+            # exponential moving average for all numbers but gripper state (last entry).
+            new_pose[:-1] = ema_smooth(self.decay, new_pose, self.current_pose)[:-1]
+        self.set_pose_and_update_deltas(new_pose)
+
+    def process_key(self, key: int) -> bool:
+        if key == ord('q'):
+            return False
+
+        if key == ord('c') and not self.last_normal is None:
+            self.normal_rot = calculate_rotation_matrix(self.last_normal)
+
+        if key == ord('z') and not self.current_pose is None:
+            self.zero_pos = self.current_pose[:3]
+
+        if key == ord('p'):
+            self.is_paused = not self.is_paused
+            print(f"Paused: {self.is_paused}")
+        return True
+
+    def shift_scale_location(self, location):
+        new_location = location - self.zero_pos
+        return new_location * self.stretch_factors
+
+    def annotate_image(self, display_img):
+        if self.is_paused:
+            cv2.putText(display_img, f"paused",
+                        (10, 10), cv2.FONT_HERSHEY_DUPLEX,
+                        0.5, np.zeros(3), 1, cv2.LINE_AA)
+        cv2.putText(display_img, f"Gripper: {'Closed' if self.is_gripper_closed else 'Open'}",
+                    (10, 40), cv2.FONT_HERSHEY_DUPLEX,
+                    0.5, np.zeros(3), 1, cv2.LINE_AA)
 
     def __del__(self):
         self.stop()
@@ -82,7 +125,7 @@ class CircleEstimator(PoseEstimator):
             new_location = self.rotation.apply(self.position)
             self.position = new_location
             new_position = np.concatenate([self.position, np.zeros(3), np.array([-1.0])])
-            self.set_position_and_update_deltas(new_position)
+            self.set_pose_and_update_deltas(new_position)
             time.sleep(0.1)
 
 class RotatorEstimator(PoseEstimator):
