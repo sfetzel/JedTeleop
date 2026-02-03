@@ -1,14 +1,17 @@
 import time
+from abc import abstractmethod
 
 import cv2
 
 from .pose_estimator import PoseEstimator, GripperState
 from .grip_detector import detect_gripper_state
+from .sources.VideoSource import VideoSource
 
 
 class KeypointBasedEstimator(PoseEstimator):
-    def __init__(self, stretch_factors: list = None) -> None:
+    def __init__(self, source:VideoSource, stretch_factors: list = None) -> None:
         super().__init__(stretch_factors)
+        self.source = source
         self.finger_distance_threshold = 0.07
 
     def set_gripper_state(self, keypoints):
@@ -16,6 +19,10 @@ class KeypointBasedEstimator(PoseEstimator):
 
     def get_gripper_state_int(self):
         return GripperState.Closed.value if self.is_gripper_closed else GripperState.Open.value
+
+    @abstractmethod
+    def process_frame(self, frame):
+        pass
 
     def run(self):
         while not self.stop_requested:

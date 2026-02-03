@@ -12,12 +12,11 @@ from .orientation import convert_hand_landmarks, calculate_normal
 from jed_teleop.utils import calculate_rotation_matrix, combine_points_width_depth, ema_smooth
 
 
-class MediaPipeHandPoseEstimator(KeypointBasedEstimator):
+class MediaPipePoseEstimator(KeypointBasedEstimator):
 
     def __init__(self, source: VideoSource, stretch_factors: list = None) -> None:
-        super(MediaPipeHandPoseEstimator, self).__init__(stretch_factors)
+        super(MediaPipePoseEstimator, self).__init__(source, stretch_factors)
         self.detector = MediaPipeHandPose(running_mode=VisionRunningMode.VIDEO)
-        self.source = source
         self.zero_pos = np.array([0.5, 0.5, 0.5])
         self.horizontal_flip = True
 
@@ -72,5 +71,5 @@ class MediaPipeHandPoseEstimator(KeypointBasedEstimator):
 
 
 if __name__ == "__main__":
-    m = MediaPipeHandPoseEstimator(0)
+    m = MediaPipePoseEstimator(0)
     m.run()

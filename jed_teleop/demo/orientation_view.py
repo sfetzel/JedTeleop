@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
-from jed_teleop.hand_pose_estimator import MediaPipeHandPoseEstimator
+from jed_teleop.mediapipe_pose_estimator import MediaPipePoseEstimator
 
 from scipy.spatial.transform import Rotation as R
 import matplotlib.animation as animation
@@ -11,7 +11,7 @@ from jed_teleop.sources import RealSenseSource
 
 #source = OpenCvDepthEstSource(2)
 source = RealSenseSource()
-estimator = MediaPipeHandPoseEstimator(source)
+estimator = MediaPipePoseEstimator(source)
 # estimator = MockEstimator()
 estimator.start()
 

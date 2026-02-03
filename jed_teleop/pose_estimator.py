@@ -17,7 +17,7 @@ class GripperState(enum.Enum):
 
 
 class PoseEstimator(ABC):
-    def __init__(self, stretch_factors: Optional[np.ndarray] = None):
+    def __init__(self, stretch_factors: Optional[list] = None):
         self.latest_deltas = None
         self.current_pose: Optional[np.ndarray] = None
         self.last_normal = None
@@ -26,6 +26,7 @@ class PoseEstimator(ABC):
         self.is_paused = False
         self.decay = 0.35
         self.zero_pos = np.zeros(3)
+        self.is_gripper_closed = False
         self.stretch_factors = np.array(stretch_factors if stretch_factors is not None else [1.0, 1.0, 1.0])
         self.pos_lock = threading.Lock()
         self.normal_rot = None

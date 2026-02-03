@@ -1,5 +1,5 @@
 import unittest
-from jed_teleop.hand_pose_estimator import MediaPipeHandPoseEstimator
+from jed_teleop.mediapipe_pose_estimator import MediaPipePoseEstimator
 from os import path
 
 from jed_teleop.sources.VideoSource import Frame
@@ -10,7 +10,7 @@ class TestHandPoseEstimator(unittest.TestCase):
     def test_process_result(self):
         frame = Frame.from_file(path.join(test_dir, "color_0000.png"), path.join(test_dir, "depth_0000.png"))
 
-        estimator = MediaPipeHandPoseEstimator(None)
+        estimator = MediaPipePoseEstimator(None)
         estimator.process_frame(frame)
 
         self.assertIsNotNone(estimator.current_pose)

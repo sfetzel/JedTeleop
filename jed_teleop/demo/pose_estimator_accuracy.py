@@ -64,7 +64,8 @@ def update_box(vis) -> bool:
 
     if gripper_state is not None:
         if gripper_state != last_gripper_state:
-            print(f"Gripper is: {"Closed" if gripper_state == GripperState.Closed.value else "Open"}")
+            gripper_string = "Closed" if gripper_state == GripperState.Closed.value else "Open"
+            print(f"Gripper is: {gripper_string}")
         last_gripper_state = gripper_state
 
         if gripper_state == GripperState.Closed.value:
