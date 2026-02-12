@@ -14,6 +14,9 @@ Simple teleoperation with hand pose recognition. There are two options:
 - `python -m jed_teleop.demo.pose_estimator_vis` for a matplotlib visualization.
 Use `--help` for arguments.
 
+## Common errors:
+- GLFW Error: Wayland: The platform does not support setting the window position -> `export XDG_SESSION_TYPE=x11`
+
 ## Controls
 For image window:
 - Press "q" to close the window and stop the estimator thread.
